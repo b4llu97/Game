@@ -321,6 +321,12 @@ curl http://localhost:8005/health
 # Orchestrator Health-Check
 curl http://localhost:8003/health
 
+# Proactivity Service Health-Check
+curl http://localhost:8006/health
+
+# Proactivity Service Status
+curl http://localhost:8006/v1/status
+
 # Fakt-Speicherung testen
 curl -X PUT http://localhost:8002/v1/facts/test.key \
   -H "Content-Type: application/json" \
@@ -407,13 +413,100 @@ curl -X POST http://localhost:8002/v1/search \
 # Antwort: Dokument gefunden mit Distanz 0.72
 ```
 
+#### Proactivity Service (Proaktive Erinnerungen)
+
+Der Proactivity Service bietet zeitbasierte Erinnerungen und proaktive Benachrichtigungen basierend auf Fakten aus der Facts DB.
+
+**Funktionen:**
+- ⏰ **Zeitfenster-Management**: Benachrichtigungen nur in definierten Zeiten
+  - Morgen: 07:30-08:30
+  - Abend: 18:30-20:00
+- 📊 **Rate Limiting**: Maximum 3 Benachrichtigungen pro Zeitfenster
+- 💰 **Steuer-Erinnerungen**: Warnung 7 Tage vor Fristen
+- 📅 **Termin-Erinnerungen**: Benachrichtigung 24 Stunden vorher
+- 🤖 **Telegram-Integration**: Benachrichtigungen via Telegram Bot
+- 📋 **YAML-basierte Regeln**: Konfigurierbare Regel-Engine
+
+**Konfiguration (config/proactivity.yml):**
+```yaml
+reminders:
+  morning:
+    - type: tax_deadline
+      check_fact: naechste_steuer_frist
+      days_before: 7
+      message: "⚠️ Erinnerung: Steuer-Frist in {days} Tagen"
+  
+  evening:
+    - type: appointment
+      check_fact: naechster_termin
+      hours_before: 24
+      message: "📅 Morgen: {appointment_name} um {time}"
+```
+
+**Telegram-Konfiguration (config/.env):**
+```bash
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+```
+
+**Verwendung:**
+
+1. **Facts für Erinnerungen setzen:**
+   ```bash
+   # Steuer-Frist setzen (ISO 8601 Format)
+   curl -X PUT http://localhost:8002/v1/facts/naechste_steuer_frist \
+     -H "Content-Type: application/json" \
+     -d '{"value":"2025-10-15T00:00:00"}'
+   
+   # Termin setzen (Format: ISO_DATETIME|Name)
+   curl -X PUT http://localhost:8002/v1/facts/naechster_termin \
+     -H "Content-Type: application/json" \
+     -d '{"value":"2025-10-06T14:30:00|Zahnarzttermin"}'
+   ```
+
+2. **Service-Status prüfen:**
+   ```bash
+   curl http://localhost:8006/v1/status
+   
+   # Antwort:
+   # {
+   #   "scheduler_running": true,
+   #   "active_time_windows": {
+   #     "current_window": null,  # oder "morning"/"evening"
+   #     "windows": [
+   #       {"name": "morning", "start": "07:30", "end": "08:30"},
+   #       {"name": "evening", "start": "18:30", "end": "20:00"}
+   #     ]
+   #   },
+   #   "notification_count_today": {
+   #     "morning": 0,
+   #     "evening": 0
+   #   }
+   # }
+   ```
+
+3. **Logs überwachen:**
+   ```bash
+   docker-compose logs -f proactivity
+   
+   # Ausgabe:
+   # proactivity  | INFO - Proactivity scheduler started
+   # proactivity  | INFO - Running morning proactivity check
+   # proactivity  | INFO - Sent morning reminder: ⚠️ Erinnerung: Steuer-Frist in 5 Tagen
+   ```
+
+**Hinweis:** Benachrichtigungen werden nur in den definierten Zeitfenstern versendet. Der Scheduler läuft täglich:
+- 07:30 Uhr: Morgen-Check
+- 18:30 Uhr: Abend-Check
+- 00:00 Uhr: Reset der Benachrichtigungs-Zähler
+
 ## Roadmap
 
 - [x] Phase 1: Basis-Infrastruktur (docker-compose, toolserver, chroma, llama) - **PR1**
 - [x] Phase 2: ASR/TTS Services - **PR2**
 - [x] Phase 3: Orchestrator mit LLM-Integration - **PR3**
 - [x] Phase 4: Ingestion-Pipeline - **PR4**
-- [ ] Phase 5: Proaktiv-Engine - PR5
+- [x] Phase 5: Proaktiv-Engine - **PR5**
 
 ## Sicherheit
 
