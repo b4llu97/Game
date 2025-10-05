@@ -11,7 +11,7 @@ Jarvis ist ein modulares KI-System, das folgende Hauptfunktionen bietet:
 - 🤖 LLM-gestützte Konversation (Ollama)
 - ⏰ Proaktive Erinnerungen und Benachrichtigungen
 
-## Architektur (PR1-3: Vollständige KI-Integration)
+## Architektur (PR1-4: KI-Integration + Automatische Dokumentenverarbeitung)
 
 Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 
@@ -26,6 +26,9 @@ Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 
 **PR3 - Orchestrator:**
 6. **orchestrator**: Hauptkoordinator mit LLM-Integration (Port 8003)
+
+**PR4 - Ingestion-Pipeline:**
+7. **ingestion**: Automatische Dokumentenverarbeitung (NAS + E-Mail)
 
 Weitere Services folgen in späteren PRs.
 
@@ -177,6 +180,75 @@ curl -X POST http://localhost:8003/v1/query \
 5. Führt Tool-Calls über Toolserver aus
 6. Ruft LLM erneut auf, um finale Antwort zu formulieren
 
+#### Ingestion Service (Automatische Dokumentenverarbeitung)
+
+Der Ingestion Service überwacht automatisch Verzeichnisse und E-Mail-Postfächer auf neue Dokumente und indexiert diese in ChromaDB für semantische Suche.
+
+**Funktionen:**
+- 📁 **File-Watcher**: Überwacht `/mnt/nas` rekursiv auf neue Dateien
+- 📧 **E-Mail-Fetcher**: Ruft neue E-Mails via IMAP ab (optional)
+- 📄 **Dokumenten-Extraktion**: 
+  - PDFs (PyPDF2)
+  - Word-Dokumente (python-docx)
+  - Textdateien (UTF-8)
+  - Bilder mit OCR (Tesseract, Deutsch)
+- 🔍 **Automatische Indexierung**: Alle Dokumente werden in ChromaDB indexiert
+
+**Unterstützte Dateitypen:**
+- `.pdf` - PDF-Dokumente
+- `.docx`, `.doc` - Microsoft Word
+- `.txt` - Textdateien
+- `.png`, `.jpg`, `.jpeg`, `.tiff` - Bilder (mit OCR)
+
+**Konfiguration (docker-compose.yml):**
+```yaml
+environment:
+  - NAS_MOUNT_PATH=/mnt/nas          # Überwachtes Verzeichnis (important-comment)
+  - ENABLE_MAIL_FETCH=false          # E-Mail-Fetcher aktivieren (important-comment)
+  - MAIL_FETCH_INTERVAL=300          # Abrufintervall in Sekunden (5 Min) (important-comment)
+  - TOOLSERVER_URL=http://toolserver:8002
+```
+
+**E-Mail-Konfiguration (config/.env):**
+```bash
+# Optional: Nur wenn ENABLE_MAIL_FETCH=true (important-comment)
+IMAP_SERVER=imap.gmail.com
+IMAP_USER=your-email@gmail.com
+IMAP_PASSWORD=your-app-password
+IMAP_FOLDER=INBOX
+```
+
+**Verwendung:**
+
+1. **Dokumente hinzufügen:**
+   ```bash
+   # Kopiere Dokumente in das überwachte Verzeichnis (important-comment)
+   cp ~/Dokumente/versicherung.pdf ./data/
+   
+   # Der Ingestion Service erkennt automatisch neue Dateien (important-comment)
+   # und indexiert sie in ChromaDB (important-comment)
+   ```
+
+2. **Logs überwachen:**
+   ```bash
+   docker-compose logs -f ingestion
+   
+   # Ausgabe: (important-comment)
+   # ingestion  | INFO - File watcher started for: /mnt/nas (important-comment)
+   # ingestion  | INFO - New file detected: /mnt/nas/versicherung.pdf (important-comment)
+   # ingestion  | INFO - Processing file: versicherung.pdf (type: .pdf) (important-comment)
+   # ingestion  | INFO - Document indexed successfully: versicherung.pdf (important-comment)
+   ```
+
+3. **Indexierte Dokumente durchsuchen:**
+   ```bash
+   curl -X POST http://localhost:8002/v1/search \
+     -H "Content-Type: application/json" \
+     -d '{"query":"Versicherung", "n_results":5}'
+   ```
+
+**Hinweis:** In Produktion kann `./data` durch einen echten NAS-Mount ersetzt werden (z.B. SMB/CIFS zu Synology DS224+).
+
 ## Konfiguration
 
 ### config/.env
@@ -284,6 +356,16 @@ curl -X POST http://localhost:8003/v1/query \
 curl -X POST http://localhost:8003/v1/query \
   -H "Content-Type: application/json" \
   -d '{"query":"Wie hoch ist meine Gebäudeversicherung?"}'
+
+# Ingestion Test (Dokument hinzufügen und suchen)
+echo "Dies ist ein Testdokument über Gebäudeversicherungen." > data/test_doc.txt
+sleep 3  # Warte auf File-Watcher (important-comment)
+docker-compose logs ingestion | tail -10  # Prüfe Logs (important-comment)
+
+# Suche nach indexiertem Dokument (important-comment)
+curl -X POST http://localhost:8002/v1/search \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Gebäudeversicherung", "n_results":3}'
 ```
 
 ### Verifizierte Funktionalität (PR1)
@@ -329,7 +411,7 @@ curl -X POST http://localhost:8002/v1/search \
 - [x] Phase 1: Basis-Infrastruktur (docker-compose, toolserver, chroma, llama) - **PR1**
 - [x] Phase 2: ASR/TTS Services - **PR2**
 - [x] Phase 3: Orchestrator mit LLM-Integration - **PR3**
-- [ ] Phase 4: Ingestion-Pipeline - PR4
+- [x] Phase 4: Ingestion-Pipeline - **PR4**
 - [ ] Phase 5: Proaktiv-Engine - PR5
 
 ## Sicherheit
