@@ -102,6 +102,27 @@ services:
       - jarvis-network
     restart: unless-stopped
 
+  ingestion:
+    build:
+      context: ./services/ingestion
+      dockerfile: Dockerfile
+    container_name: jarvis-ingestion
+    volumes:
+      - ./data:/mnt/nas
+      - ./config:/app/config:ro
+    environment:
+      - TOOLSERVER_URL=http://toolserver:8002
+      - NAS_MOUNT_PATH=/mnt/nas
+      - ENABLE_MAIL_FETCH=false
+      - MAIL_FETCH_INTERVAL=300
+    env_file:
+      - ./config/.env
+    depends_on:
+      - toolserver
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
 networks:
   jarvis-network:
     driver: bridge
