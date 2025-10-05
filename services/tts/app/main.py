@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import subprocess
@@ -7,6 +8,14 @@ import os
 import uuid
 
 app = FastAPI(title="Jarvis TTS Service", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 PIPER_MODEL = "/app/models/de_DE-thorsten-medium.onnx"
 OUTPUT_DIR = "/app/output"

@@ -141,6 +141,21 @@ services:
       - jarvis-network
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+    container_name: jarvis-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - orchestrator
+      - asr
+      - tts
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
 networks:
   jarvis-network:
     driver: bridge

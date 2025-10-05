@@ -442,6 +442,81 @@ docker-compose logs proactivity
 docker-compose restart
 ```
 
+## Frontend Testing (Web-GUI)
+
+### Zugriff auf das Frontend
+
+Nach dem Start aller Services können Sie das Web-Frontend im Browser öffnen:
+
+```bash
+# Öffnen Sie im Browser:
+http://localhost:8080
+```
+
+### Text-Chat testen
+
+1. **Öffnen Sie das Frontend** in Ihrem Browser
+2. **Geben Sie eine Frage ein** im Chat-Eingabefeld (z.B. "Hallo Jarvis, wie geht es dir?")
+3. **Klicken Sie auf den Send-Button** oder drücken Sie Enter
+4. **Warten Sie auf die Antwort** - Sie sollten sehen:
+   - Ihre Nachricht erscheint rechts (blau)
+   - "Jarvis denkt nach..." Ladeanzeige
+   - Jarvis' Antwort erscheint links (grau)
+   - Audio-Wiedergabe der Antwort
+
+### Spracheingabe testen
+
+1. **Klicken Sie auf den Mikrofon-Button** (lila)
+2. **Erlauben Sie Mikrofon-Zugriff** wenn der Browser fragt
+3. **Sprechen Sie Ihre Frage** (z.B. "Was ist die Hauptstadt der Schweiz?")
+4. **Klicken Sie erneut auf den Mikrofon-Button** zum Beenden
+5. **Warten Sie auf die Verarbeitung**:
+   - Transkription der Sprache zu Text
+   - Jarvis verarbeitet die Anfrage
+   - Antwort erscheint im Chat
+   - Audio-Wiedergabe der Antwort
+
+### Troubleshooting Frontend
+
+**Problem: Frontend lädt nicht (Port 8080)**
+```bash
+# Prüfen Sie ob der Container läuft
+docker ps | grep jarvis-frontend
+
+# Prüfen Sie die Logs
+docker-compose logs frontend
+
+# Rebuild bei Bedarf
+docker-compose up -d --build frontend
+```
+
+**Problem: Mikrofon funktioniert nicht**
+- Überprüfen Sie Browser-Berechtigungen für Mikrofon-Zugriff
+- Stellen Sie sicher, dass kein anderes Programm das Mikrofon verwendet
+- Testen Sie in einem anderen Browser (Chrome/Firefox empfohlen)
+
+**Problem: Keine Antworten vom Backend**
+```bash
+# Prüfen Sie ob alle Services laufen
+docker-compose ps
+
+# Prüfen Sie Backend-Logs
+docker-compose logs orchestrator
+docker-compose logs asr
+docker-compose logs tts
+
+# Testen Sie die APIs direkt:
+curl http://localhost:8003/health
+curl http://localhost:8004/health
+curl http://localhost:8005/health
+```
+
+**Problem: CORS-Fehler in Browser-Konsole**
+- Öffnen Sie die Browser-Entwicklertools (F12)
+- Prüfen Sie die Konsole auf CORS-Fehler
+- Die Services sollten CORS-Header senden (bereits konfiguriert)
+- Bei Problemen: Services neu starten
+
 ### Ollama Modell fehlt
 
 ```bash
@@ -485,7 +560,7 @@ ss -tlnp | grep -E ':(8001|8002|8003|8004|8005|8006|11434)'
 
 Nach Abschluss aller Tests solltest du:
 
-✅ **Alle 8 Services laufen** (docker-compose ps)  
+✅ **Alle 9 Services laufen** (docker-compose ps)  
 ✅ **Health-Checks bestanden** (alle Endpoints antworten)  
 ✅ **Facts speichern & abrufen** funktioniert  
 ✅ **Semantische Suche** findet Dokumente  
@@ -494,6 +569,7 @@ Nach Abschluss aller Tests solltest du:
 ✅ **Orchestrator** führt Tool-Calls aus  
 ✅ **Ingestion** indexiert Dokumente automatisch  
 ✅ **Proactivity** zeigt Status korrekt an  
+✅ **Frontend** lädt im Browser und Chat funktioniert  
 ✅ **End-to-End Workflow** funktioniert  
 
 ---

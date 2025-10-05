@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from faster_whisper import WhisperModel
 import tempfile
 import os
@@ -6,6 +7,14 @@ from pydantic import BaseModel
 from typing import Optional
 
 app = FastAPI(title="Jarvis ASR Service", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 print("Loading Whisper model...")
 model = WhisperModel("small", device="cpu", compute_type="int8")
