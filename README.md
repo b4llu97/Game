@@ -11,13 +11,18 @@ Jarvis ist ein modulares KI-System, das folgende Hauptfunktionen bietet:
 - 🤖 LLM-gestützte Konversation (Ollama)
 - ⏰ Proaktive Erinnerungen und Benachrichtigungen
 
-## Architektur (PR1: Basis-Infrastruktur)
+## Architektur (PR1-2: Basis-Infrastruktur + ASR/TTS)
 
-Das System wird in mehreren Phasen implementiert. Diese erste Phase (PR1) umfasst die Basis-Infrastruktur:
+Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 
+**PR1 - Basis-Infrastruktur:**
 1. **llama**: Ollama LLM Service (Port 11434)
 2. **chroma**: ChromaDB Vector Database (Port 8001)
 3. **toolserver**: Facts Database + Vector Search API (Port 8002)
+
+**PR2 - ASR/TTS Services:**
+4. **asr**: Automatic Speech Recognition - faster-whisper (Port 8004)
+5. **tts**: Text-to-Speech - Piper TTS, Deutsche Stimme (Port 8005)
 
 Weitere Services folgen in späteren PRs.
 
@@ -84,6 +89,42 @@ curl -X POST http://localhost:8002/v1/search \
   -d '{"query":"Versicherung", "n_results":5}'
 ```
 
+#### ASR Service (Spracherkennung)
+
+Audio-Datei transkribieren:
+```bash
+# WAV, MP3, M4A, OGG oder FLAC Datei hochladen
+curl -X POST http://localhost:8004/v1/transcribe \
+  -F "file=@audio.wav"
+
+# Antwort:
+# {
+#   "text": "Hallo, wie hoch ist meine Gebäudeversicherung?",
+#   "language": "de",
+#   "duration": 3.5
+# }
+```
+
+#### TTS Service (Sprachausgabe)
+
+Text in Sprache umwandeln:
+```bash
+# Deutschen Text in Sprache konvertieren
+curl -X POST http://localhost:8005/v1/speak \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hallo, ich bin Jarvis, dein persönlicher Assistent."}' \
+  --output sprache.wav
+
+# Mit angepasster Geschwindigkeit (1.0 = normal, 0.5 = langsamer, 2.0 = schneller)
+curl -X POST http://localhost:8005/v1/speak \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Dies ist ein Test", "speed":1.2}' \
+  --output sprache.wav
+
+# Abspielen (Linux)
+aplay sprache.wav
+```
+
 ## Konfiguration
 
 ### config/.env
@@ -146,6 +187,12 @@ curl http://localhost:8001/api/v1/heartbeat
 # Ollama Health-Check
 curl http://localhost:11434/api/tags
 
+# ASR Service Health-Check
+curl http://localhost:8004/health
+
+# TTS Service Health-Check
+curl http://localhost:8005/health
+
 # Fakt-Speicherung testen
 curl -X PUT http://localhost:8002/v1/facts/test.key \
   -H "Content-Type: application/json" \
@@ -162,6 +209,16 @@ curl -X POST http://localhost:8002/v1/documents \
 curl -X POST http://localhost:8002/v1/search \
   -H "Content-Type: application/json" \
   -d '{"query":"Test", "n_results":5}'
+
+# ASR Test (benötigt Audio-Datei)
+curl -X POST http://localhost:8004/v1/transcribe \
+  -F "file=@test_audio.wav"
+
+# TTS Test
+curl -X POST http://localhost:8005/v1/speak \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hallo Welt"}' \
+  --output test_output.wav
 ```
 
 ### Verifizierte Funktionalität (PR1)
@@ -205,7 +262,7 @@ curl -X POST http://localhost:8002/v1/search \
 ## Roadmap
 
 - [x] Phase 1: Basis-Infrastruktur (docker-compose, toolserver, chroma, llama) - **PR1**
-- [ ] Phase 2: ASR/TTS Services - PR2
+- [x] Phase 2: ASR/TTS Services - **PR2**
 - [ ] Phase 3: Orchestrator mit LLM-Integration - PR3
 - [ ] Phase 4: Ingestion-Pipeline - PR4
 - [ ] Phase 5: Proaktiv-Engine - PR5
