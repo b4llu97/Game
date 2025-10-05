@@ -33,6 +33,9 @@ Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 **PR5 - Proaktiv-Engine:**
 8. **proactivity**: Zeitbasierte Erinnerungen und Benachrichtigungen (Port 8006)
 
+**PR6 - Web-Frontend:**
+9. **frontend**: Moderne Browser-GUI für Chat und Spracheingabe (Port 8080)
+
 ## Schnellstart
 
 ### Voraussetzungen
@@ -65,6 +68,11 @@ docker-compose up -d
 4. LLM-Modell herunterladen:
 ```bash
 docker exec jarvis-llama ollama pull llama3.1
+```
+
+5. Frontend im Browser öffnen:
+```
+http://localhost:8080
 ```
 
 ### Verwendung
@@ -510,6 +518,7 @@ TELEGRAM_CHAT_ID=your_chat_id_here
 - [x] Phase 3: Orchestrator mit LLM-Integration - **PR3**
 - [x] Phase 4: Ingestion-Pipeline - **PR4**
 - [x] Phase 5: Proaktiv-Engine - **PR5**
+- [x] Phase 6: Web-Frontend - **PR6**
 
 ## Sicherheit
 
