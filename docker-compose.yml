@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  llama:
+    image: ollama/ollama:latest
+    container_name: jarvis-llama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
+  chroma:
+    image: chromadb/chroma:0.4.24
+    container_name: jarvis-chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/data
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+      - ALLOW_RESET=TRUE
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
+  toolserver:
+    build:
+      context: ./services/toolserver
+      dockerfile: Dockerfile
+    container_name: jarvis-toolserver
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+    environment:
+      - FACTS_DB_PATH=/app/data/facts.db
+      - CHROMA_HOST=http://chroma:8000
+      - CHROMA_COLLECTION=jarvis_docs
+    env_file:
+      - ./config/.env
+    depends_on:
+      - chroma
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
+networks:
+  jarvis-network:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  chroma_data:
