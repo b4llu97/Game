@@ -49,6 +49,37 @@ services:
       - jarvis-network
     restart: unless-stopped
 
+  asr:
+    build:
+      context: ./services/asr
+      dockerfile: Dockerfile
+    container_name: jarvis-asr
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./config:/app/config:ro
+    env_file:
+      - ./config/.env
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
+  tts:
+    build:
+      context: ./services/tts
+      dockerfile: Dockerfile
+    container_name: jarvis-tts
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./config:/app/config:ro
+      - tts_output:/app/output
+    env_file:
+      - ./config/.env
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
 networks:
   jarvis-network:
     driver: bridge
@@ -56,3 +87,4 @@ networks:
 volumes:
   ollama_data:
   chroma_data:
+  tts_output:
