@@ -123,6 +123,26 @@ services:
       - jarvis-network
     restart: unless-stopped
 
+  proactivity:
+    build:
+      context: ./services/proactivity
+      dockerfile: Dockerfile
+    container_name: jarvis-proactivity
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./config:/app/config:ro
+    environment:
+      - TOOLSERVER_URL=http://toolserver:8002
+      - PROACTIVITY_CONFIG=/app/config/proactivity.yml
+    env_file:
+      - ./config/.env
+    depends_on:
+      - toolserver
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
 networks:
   jarvis-network:
     driver: bridge
