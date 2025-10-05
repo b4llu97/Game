@@ -30,7 +30,8 @@ Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 **PR4 - Ingestion-Pipeline:**
 7. **ingestion**: Automatische Dokumentenverarbeitung (NAS + E-Mail)
 
-Weitere Services folgen in späteren PRs.
+**PR5 - Proaktiv-Engine:**
+8. **proactivity**: Zeitbasierte Erinnerungen und Benachrichtigungen (Port 8006)
 
 ## Schnellstart
 

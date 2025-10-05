@@ -1,0 +1,22 @@
+reminders:
+  morning:
+    - type: tax_deadline
+      check_fact: naechste_steuer_frist
+      days_before: 7
+      message: "⚠️ Erinnerung: Steuer-Frist in {days} Tagen"
+    
+    - type: tax_deadline
+      check_fact: naechste_versicherungs_zahlung
+      days_before: 5
+      message: "💰 Versicherung: Zahlung fällig in {days} Tagen"
+  
+  evening:
+    - type: appointment
+      check_fact: naechster_termin
+      hours_before: 24
+      message: "📅 Morgen: {appointment_name} um {time}"
+    
+    - type: appointment
+      check_fact: naechster_termin
+      hours_before: 3
+      message: "⏰ Bald: {appointment_name} um {time}"
