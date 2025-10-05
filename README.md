@@ -11,7 +11,7 @@ Jarvis ist ein modulares KI-System, das folgende Hauptfunktionen bietet:
 - 🤖 LLM-gestützte Konversation (Ollama)
 - ⏰ Proaktive Erinnerungen und Benachrichtigungen
 
-## Architektur (PR1-2: Basis-Infrastruktur + ASR/TTS)
+## Architektur (PR1-3: Vollständige KI-Integration)
 
 Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 
@@ -23,6 +23,9 @@ Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 **PR2 - ASR/TTS Services:**
 4. **asr**: Automatic Speech Recognition - faster-whisper (Port 8004)
 5. **tts**: Text-to-Speech - Piper TTS, Deutsche Stimme (Port 8005)
+
+**PR3 - Orchestrator:**
+6. **orchestrator**: Hauptkoordinator mit LLM-Integration (Port 8003)
 
 Weitere Services folgen in späteren PRs.
 
@@ -125,6 +128,55 @@ curl -X POST http://localhost:8005/v1/speak \
 aplay sprache.wav
 ```
 
+#### Orchestrator Service (Hauptkoordinator)
+
+Der Orchestrator verbindet alle Services und ermöglicht natürlichsprachige Interaktion:
+
+```bash
+# Einfache Anfrage (ohne Tool-Calls)
+curl -X POST http://localhost:8003/v1/query \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Hallo, wer bist du?"}'
+
+# Antwort:
+# {
+#   "response": "Guten Tag! Ich bin Jarvis, Ihr persönlicher KI-Assistent...",
+#   "tool_calls": [],
+#   "tool_results": []
+# }
+
+# Anfrage mit Tool-Call (Fakt abrufen)
+curl -X POST http://localhost:8003/v1/query \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Wie hoch ist meine Gebäudeversicherung?"}'
+
+# Antwort:
+# {
+#   "response": "Ihre Gebäudeversicherung beträgt 980.000 CHF.",
+#   "tool_calls": [{"function": "get_fact", "key": "versicherung.gebaeude.summe"}],
+#   "tool_results": [{"tool_call": {...}, "result": {"success": true, "result": "980000 CHF"}}]
+# }
+
+# Mit Konversationshistorie
+curl -X POST http://localhost:8003/v1/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Und wie hoch ist meine Hausratversicherung?",
+    "conversation_history": [
+      {"role": "user", "content": "Wie hoch ist meine Gebäudeversicherung?"},
+      {"role": "assistant", "content": "Ihre Gebäudeversicherung beträgt 980.000 CHF."}
+    ]
+  }'
+```
+
+**Funktionsweise:**
+1. Orchestrator lädt System- und Persona-Prompts
+2. Holt verfügbare Tools vom Toolserver
+3. Ruft Ollama LLM mit vollständigem Kontext auf
+4. Parst Tool-Calls aus LLM-Antwort (Format: `<tool_call>get_fact("key")</tool_call>`)
+5. Führt Tool-Calls über Toolserver aus
+6. Ruft LLM erneut auf, um finale Antwort zu formulieren
+
 ## Konfiguration
 
 ### config/.env
@@ -193,6 +245,9 @@ curl http://localhost:8004/health
 # TTS Service Health-Check
 curl http://localhost:8005/health
 
+# Orchestrator Health-Check
+curl http://localhost:8003/health
+
 # Fakt-Speicherung testen
 curl -X PUT http://localhost:8002/v1/facts/test.key \
   -H "Content-Type: application/json" \
@@ -219,6 +274,16 @@ curl -X POST http://localhost:8005/v1/speak \
   -H "Content-Type: application/json" \
   -d '{"text":"Hallo Welt"}' \
   --output test_output.wav
+
+# Orchestrator Test (ohne Tool-Call)
+curl -X POST http://localhost:8003/v1/query \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Hallo!"}'
+
+# Orchestrator Test (mit Tool-Call)
+curl -X POST http://localhost:8003/v1/query \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Wie hoch ist meine Gebäudeversicherung?"}'
 ```
 
 ### Verifizierte Funktionalität (PR1)
@@ -263,7 +328,7 @@ curl -X POST http://localhost:8002/v1/search \
 
 - [x] Phase 1: Basis-Infrastruktur (docker-compose, toolserver, chroma, llama) - **PR1**
 - [x] Phase 2: ASR/TTS Services - **PR2**
-- [ ] Phase 3: Orchestrator mit LLM-Integration - PR3
+- [x] Phase 3: Orchestrator mit LLM-Integration - **PR3**
 - [ ] Phase 4: Ingestion-Pipeline - PR4
 - [ ] Phase 5: Proaktiv-Engine - PR5
 

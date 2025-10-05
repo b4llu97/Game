@@ -49,6 +49,28 @@ services:
       - jarvis-network
     restart: unless-stopped
 
+  orchestrator:
+    build:
+      context: ./services/orchestrator
+      dockerfile: Dockerfile
+    container_name: jarvis-orchestrator
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./config:/app/config:ro
+    environment:
+      - TOOLSERVER_URL=http://toolserver:8002
+      - OLLAMA_URL=http://llama:11434
+      - OLLAMA_MODEL=llama3.1
+    env_file:
+      - ./config/.env
+    depends_on:
+      - llama
+      - toolserver
+    networks:
+      - jarvis-network
+    restart: unless-stopped
+
   asr:
     build:
       context: ./services/asr
