@@ -43,10 +43,23 @@ cd Jarvis
 
 ### 2. Umgebungsvariablen konfigurieren
 
-**Basis-Konfiguration (bereits vorhanden):**
+**WICHTIG:** Die `config/.env` Datei muss manuell erstellt werden:
+
 ```bash
+# Kopiere die Beispiel-Datei
+cp config/.env.example config/.env
+
+# Überprüfe den Inhalt
 cat config/.env
 ```
+
+**Basis-Konfiguration (bereits in config/.env.example):**
+- `TZ=Europe/Zurich` - Zeitzone
+- `LLAMA_ENDPOINT=http://llama:8080` - Ollama LLM Service
+- `CHROMA_ENDPOINT=http://chroma:8001` - ChromaDB Vector Database
+- `SQLITE_PATH=/app/sqlite/facts.db` - Facts Database
+- `ASR_MODEL=small-int8` - Whisper ASR Modell
+- `TTS_VOICE=de-DE` - TTS Stimme
 
 **Optional: Telegram-Bot konfigurieren**
 ```bash
