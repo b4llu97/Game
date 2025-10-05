@@ -50,8 +50,11 @@ cd Jarvis
 
 2. Umgebungsvariablen konfigurieren:
 ```bash
-# Die config/.env Datei ist bereits vorhanden
-# Bei Bedarf anpassen (z.B. IMAP-Zugangsdaten)
+# WICHTIG: Erstelle config/.env aus der Beispiel-Datei
+cp config/.env.example config/.env
+
+# Optional: Anpassen für Telegram-Bot oder IMAP-Zugangsdaten
+# nano config/.env
 ```
 
 3. Services starten:
