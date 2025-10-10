@@ -49,7 +49,8 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await sendTextQuery(text, messages);
+      const conversationHistory = messages.map(m => ({ role: m.role, content: m.content }));
+      const response = await sendTextQuery(text, conversationHistory);
       const assistantMessage: MessageWithTools = { 
         role: 'assistant', 
         content: response.response,
