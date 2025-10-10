@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_ORCHESTRATOR_URL: string
   readonly VITE_ASR_URL: string
   readonly VITE_TTS_URL: string
+  readonly VITE_TOOLSERVER_URL: string
 }
 
 interface ImportMeta {

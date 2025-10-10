@@ -145,6 +145,11 @@ services:
     build:
       context: ./services/frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_ORCHESTRATOR_URL=http://localhost:8003
+        - VITE_ASR_URL=http://localhost:8004
+        - VITE_TTS_URL=http://localhost:8005
+        - VITE_TOOLSERVER_URL=http://localhost:8002
     container_name: jarvis-frontend
     ports:
       - "8080:80"
@@ -152,6 +157,7 @@ services:
       - orchestrator
       - asr
       - tts
+      - toolserver
     networks:
       - jarvis-network
     restart: unless-stopped

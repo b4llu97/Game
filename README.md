@@ -11,7 +11,7 @@ Jarvis ist ein modulares KI-System, das folgende Hauptfunktionen bietet:
 - 🤖 LLM-gestützte Konversation (Ollama)
 - ⏰ Proaktive Erinnerungen und Benachrichtigungen
 
-## Architektur (PR1-4: KI-Integration + Automatische Dokumentenverarbeitung)
+## Architektur (PR1-6: KI-Integration + Automatische Dokumentenverarbeitung + GUI)
 
 Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 
@@ -33,8 +33,8 @@ Das System wird in mehreren Phasen implementiert. Diese PRs umfassen:
 **PR5 - Proaktiv-Engine:**
 8. **proactivity**: Zeitbasierte Erinnerungen und Benachrichtigungen (Port 8006)
 
-**PR6 - Web-Frontend:**
-9. **frontend**: Moderne Browser-GUI für Chat und Spracheingabe (Port 8080)
+**PR6 - Professional GUI:**
+9. **frontend**: React + TypeScript Web-Interface mit Chat, Spracheingabe und Fakten-Verwaltung (Port 8080)
 
 ## Schnellstart
 
