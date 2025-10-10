@@ -1,6 +1,7 @@
 const ORCHESTRATOR_URL = import.meta.env.VITE_ORCHESTRATOR_URL || 'http://localhost:8003';
 const ASR_URL = import.meta.env.VITE_ASR_URL || 'http://localhost:8004';
 const TTS_URL = import.meta.env.VITE_TTS_URL || 'http://localhost:8005';
+const TOOLSERVER_URL = import.meta.env.VITE_TOOLSERVER_URL || 'http://localhost:8002';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -77,4 +78,57 @@ export async function synthesizeSpeech(text: string): Promise<Blob> {
   }
 
   return response.blob();
+}
+
+export interface Fact {
+  key: string;
+  value: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export async function listFacts(): Promise<Fact[]> {
+  const response = await fetch(`${TOOLSERVER_URL}/v1/facts`);
+  
+  if (!response.ok) {
+    throw new Error(`Toolserver error: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+export async function getFact(key: string): Promise<Fact> {
+  const response = await fetch(`${TOOLSERVER_URL}/v1/facts/${encodeURIComponent(key)}`);
+  
+  if (!response.ok) {
+    throw new Error(`Toolserver error: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+export async function setFact(key: string, value: string): Promise<Fact> {
+  const response = await fetch(`${TOOLSERVER_URL}/v1/facts/${encodeURIComponent(key)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value }),
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Toolserver error: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+export async function deleteFact(key: string): Promise<void> {
+  const response = await fetch(`${TOOLSERVER_URL}/v1/facts/${encodeURIComponent(key)}`, {
+    method: 'DELETE',
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Toolserver error: ${response.statusText}`);
+  }
 }
